@@ -1,0 +1,38 @@
+/* @kodo/shared — kanoniske Ko|Do design-tokens (temaet).
+ *
+ * Importeres av hver app FØR sin egen globals.css:
+ *   import "@kodo/shared/tokens.css";
+ *   import "./globals.css";
+ *
+ * - Samme tema i alle apper: begge importerer denne fila.
+ * - Endre ÉN verdi her → re-themer alle apper og alle skall-forekomster.
+ * - Avvik per app: redefiner en token i app-ens egen :root ETTER importen.
+ *
+ * Delte komponenter (SettingsShell m.fl.) peker KUN på disse tokenene, aldri
+ * på faste farger — så de arver hva enn appen har satt.
+ */
+:root {
+  /* Merkevare-aksent (Ko|Do amber) */
+  --kodo-accent: #f5a623;
+  --kodo-accent-soft: rgba(245, 166, 35, 0.14);
+  --kodo-accent-glow: rgba(245, 166, 35, 0.45);
+
+  /* Flate + tekst */
+  --kodo-bg: #0a0e17;
+  --kodo-text: #eef2f8;
+  --kodo-muted: #93a0b4;
+  --kodo-border: rgba(255, 255, 255, 0.08);
+  --kodo-border-strong: rgba(255, 255, 255, 0.16);
+  --kodo-surface: rgba(255, 255, 255, 0.04);
+  --kodo-surface-hover: rgba(255, 255, 255, 0.07);
+
+  /* Funksjonsfarger */
+  --kodo-blue: #3b82f6;
+  --kodo-blue-hover: #2563eb;
+  --kodo-ok: #34d399;
+  --kodo-warn: #f5a623;
+  --kodo-flag: #fb7185;
+
+  /* Form */
+  --kodo-radius: 12px;
+}
