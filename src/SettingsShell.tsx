@@ -49,10 +49,10 @@ export function SettingsShell({
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto bg-black/70 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto bg-[var(--kodo-overlay)] p-4 backdrop-blur-sm"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
-      <div className="my-8 w-full max-w-3xl overflow-hidden rounded-2xl border border-[var(--kodo-border-strong)] bg-[rgba(18,24,36,0.98)] text-[var(--kodo-text)] shadow-2xl">
+      <div className="my-8 w-full max-w-3xl overflow-hidden rounded-2xl border border-[var(--kodo-border-strong)] bg-[var(--kodo-surface-modal)] text-[var(--kodo-text)] shadow-2xl">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-[var(--kodo-border)] px-5 py-4">
           <div className="text-[15px] font-semibold">{title}</div>
