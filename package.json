@@ -8,11 +8,16 @@
   "types": "src/index.ts",
   "exports": {
     ".": "./src/index.ts",
+    "./ui": "./src/ui.ts",
     "./tokens.css": "./tokens.css"
   },
   "sideEffects": false,
   "dependencies": {
     "clsx": "^2.1.1",
     "tailwind-merge": "^2.5.5"
+  },
+  "peerDependencies": {
+    "react": ">=18",
+    "react-dom": ">=18"
   }
 }
