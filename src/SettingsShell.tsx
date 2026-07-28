@@ -80,7 +80,9 @@ export function SettingsShell({
                   // globale button-stil ikke blør inn (preflight kan være av).
                   "relative cursor-pointer whitespace-nowrap rounded-md border-0 px-3 py-2 text-[13px] font-medium transition",
                   isActive
-                    ? "bg-[var(--kodo-accent-soft)] text-[var(--kodo-accent)]"
+                    ? // Eksplisitt hover-bg også på aktiv, ellers blør host-appens
+                      // globale button:hover inn (samme selv-innholdt-lærdom).
+                      "bg-[var(--kodo-accent-soft)] text-[var(--kodo-accent)] hover:bg-[var(--kodo-accent-soft)]"
                     : "bg-transparent text-[var(--kodo-muted)] hover:bg-[var(--kodo-hover)] hover:text-[var(--kodo-text)]",
                 )}
               >
