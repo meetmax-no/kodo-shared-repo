@@ -59,7 +59,7 @@ export function SettingsShell({
           <button
             onClick={onClose}
             aria-label="Lukk"
-            className="cursor-pointer rounded-md border-0 bg-transparent px-2 py-1 text-[var(--kodo-muted)] transition hover:bg-white/10 hover:text-[var(--kodo-text)]"
+            className="cursor-pointer rounded-md border-0 bg-transparent px-2 py-1 text-[var(--kodo-muted)] transition hover:bg-[var(--kodo-hover-strong)] hover:text-[var(--kodo-text)]"
           >
             ✕
           </button>
@@ -81,7 +81,7 @@ export function SettingsShell({
                   "relative cursor-pointer whitespace-nowrap rounded-md border-0 px-3 py-2 text-[13px] font-medium transition",
                   isActive
                     ? "bg-[var(--kodo-accent-soft)] text-[var(--kodo-accent)]"
-                    : "bg-transparent text-[var(--kodo-muted)] hover:bg-white/[0.04] hover:text-[var(--kodo-text)]",
+                    : "bg-transparent text-[var(--kodo-muted)] hover:bg-[var(--kodo-hover)] hover:text-[var(--kodo-text)]",
                 )}
               >
                 {t.label}

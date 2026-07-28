@@ -27,6 +27,9 @@
   --kodo-surface-hover: rgba(255, 255, 255, 0.07);
   --kodo-surface-modal: rgba(18, 24, 36, 0.98); /* solid flate for modaler */
   --kodo-overlay: rgba(0, 0, 0, 0.7); /* bakteppe bak modaler */
+  /* Interaktiv hover-følelse (Look & Feel — bevisst, ikke tilfeldig) */
+  --kodo-hover: rgba(255, 255, 255, 0.04); /* subtil (faner, rader) */
+  --kodo-hover-strong: rgba(255, 255, 255, 0.1); /* tydeligere (ikon-knapper) */
 
   /* Funksjonsfarger */
   --kodo-blue: #3b82f6;
