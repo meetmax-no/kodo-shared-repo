@@ -38,6 +38,21 @@
   --kodo-warn: #f5a623;
   --kodo-flag: #fb7185;
 
+  /* Ikon-flis-tinter (SettingRow/IconTile) — bg + forgrunn pr. hue */
+  --kodo-tint-blue-bg: rgba(59, 130, 246, 0.15);
+  --kodo-tint-blue-fg: #93c5fd;
+  --kodo-tint-amber-bg: rgba(245, 166, 35, 0.15);
+  --kodo-tint-amber-fg: #f5c77e;
+  --kodo-tint-green-bg: rgba(52, 211, 153, 0.15);
+  --kodo-tint-green-fg: #6ee7b7;
+  --kodo-tint-red-bg: rgba(251, 113, 133, 0.15);
+  --kodo-tint-red-fg: #fda4af;
+  --kodo-tint-purple-bg: rgba(167, 139, 250, 0.15);
+  --kodo-tint-purple-fg: #c4b5fd;
+  /* Farlig sone (DangerCard) */
+  --kodo-danger-border: rgba(251, 113, 133, 0.4);
+  --kodo-danger-bg: rgba(251, 113, 133, 0.06);
+
   /* Form */
   --kodo-radius: 12px;
 }
