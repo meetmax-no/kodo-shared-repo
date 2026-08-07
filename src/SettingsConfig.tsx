@@ -10,7 +10,12 @@ import { SettingRow, SectionHeader, DangerCard, type Tint } from "./SettingRow";
 import { LanguagePicker } from "./LanguagePicker";
 import { useLocale } from "./i18n-context";
 
-export type UiBlockType = "row" | "section" | "danger" | "language";
+export type UiBlockType =
+  | "row"
+  | "section"
+  | "danger"
+  | "language"
+  | "toggle";
 
 export interface UiBlock {
   type: UiBlockType;
@@ -23,6 +28,8 @@ export interface UiBlock {
   descKey?: string;
   /** Navn inn i appens handler-kart (klikk). */
   action?: string;
+  /** Navn inn i appens kontroll-kart (høyre-slot, f.eks. en Switch for `toggle`). */
+  control?: string;
   /** i18n-nøkkel for en «Kommer»-badge på høyre side. */
   badgeKey?: string;
   visible?: boolean;
@@ -48,6 +55,7 @@ export function SettingsConfig({
   config,
   icons,
   actions,
+  controls,
   title,
   onClose,
 }: {
@@ -57,6 +65,8 @@ export function SettingsConfig({
   icons: Record<string, ReactNode>;
   /** Navn → klikk-handler (app-levert). */
   actions: Record<string, () => void>;
+  /** Navn → høyre-slot-kontroll (app-levert, f.eks. en Switch for `toggle`). */
+  controls?: Record<string, ReactNode>;
   title: ReactNode;
   onClose: () => void;
 }) {
@@ -86,6 +96,18 @@ export function SettingsConfig({
           title={title}
           description={description}
           action={<LanguagePicker size="md" />}
+        />
+      );
+
+    if (b.type === "toggle")
+      return (
+        <SettingRow
+          key={i}
+          icon={icon}
+          tint={b.tint}
+          title={title}
+          description={description}
+          action={b.control ? controls?.[b.control] : undefined}
         />
       );
 
