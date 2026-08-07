@@ -25,9 +25,16 @@ export function Switch({
       aria-label={label}
       disabled={disabled}
       onClick={() => onChange(!checked)}
+      // Bakgrunn settes inline: da vinner den over host-appens globale
+      // `button` / `button:hover`-stiler (self-contained, ikke kapret av host).
+      // p-0 nøytraliserer evt. host-padding. Kun --kodo-*-tokens.
+      style={{
+        backgroundColor: checked
+          ? "var(--kodo-ok)"
+          : "var(--kodo-border-strong)",
+      }}
       className={cn(
-        "relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full border border-[var(--kodo-border)] transition-colors",
-        checked ? "bg-[var(--kodo-ok)]" : "bg-[var(--kodo-border-strong)]",
+        "relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full border border-[var(--kodo-border)] p-0 transition-colors",
         disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer",
       )}
     >
