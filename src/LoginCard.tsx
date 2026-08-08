@@ -56,6 +56,19 @@ export function LoginCard({
     setError(null);
   }, [pwd]);
 
+  // bfcache-felle: navigerer vi vekk mens busy=true, fryser nettleseren siden.
+  // Tilbake-knappen gjenoppretter «Saving …»-tilstanden. Nullstill ved restore.
+  useEffect(() => {
+    const onShow = (e: PageTransitionEvent) => {
+      if (e.persisted) {
+        setBusy(false);
+        setError(null);
+      }
+    };
+    window.addEventListener("pageshow", onShow);
+    return () => window.removeEventListener("pageshow", onShow);
+  }, []);
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (busy || pwd.length === 0) return;
