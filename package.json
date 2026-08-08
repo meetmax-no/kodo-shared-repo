@@ -9,6 +9,7 @@
   "exports": {
     ".": "./src/index.ts",
     "./ui": "./src/ui.ts",
+    "./auth": "./src/auth.ts",
     "./tokens.css": "./tokens.css"
   },
   "sideEffects": false,
