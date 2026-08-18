@@ -1,11 +1,15 @@
 /**
- * Delt login-trace (portet fra bankboks lib/platform/org-admin-login-events.ts).
- * Logger hver VELLYKKEDE innlogging i et Upstash sorted-set per bruker for en
+ * Delt login-trace (portet + utvidet fra bankboks). Logger innloggings-events
+ * (BÅDE vellykkede og feilede — se `kind`) i et Upstash sorted-set for en
  * sikkerhets-oversikt (Sikkerhet-fanen). 90-dagers historikk, maks 50 events.
  *
- * Datastruktur: sorted-set keyed by userId, score = timestamp, member = JSON.
- * Krypteres ikke — kun IP (synlig i nettverkslaget), user-agent (offentlig) og
- * timestamp; ingen sensitive felt.
+ * `logKey` er caller-definert: en app kan bruke per-bruker-nøkkel (bankboks'
+ * mønster) ELLER én per-instans sikkerhets-logg (rapport) for å se ALLE forsøk
+ * samlet — inkl. feilede forsøk med brukernavnet som ble prøvd.
+ *
+ * Datastruktur: sorted-set, score = timestamp, member = JSON. Krypteres ikke —
+ * kun IP (synlig i nettverkslaget), user-agent (offentlig), brukernavn og
+ * timestamp; ingen passord eller sensitive felt.
  *
  * SHARED-agnostisk: tar imot en `KodoRedis` (dependency injection). Best-effort
  * — login skal aldri blokkeres av audit-svikt. Node runtime.
@@ -18,6 +22,13 @@ const MAX_EVENTS = 50;
 export interface LoginEvent {
   /** Unix-ms — også score i sorted-set. */
   ts: number;
+  /** Utfall: vellykket eller feilet forsøk. Fargekodes i UI (grønn/rød). */
+  kind: "success" | "fail";
+  /** Brukernavnet/id-en som ble FORSØKT — også ved feil, så man ser om noen
+   *  bruker en id som ikke skal brukes. Kan være ukjent/ugyldig ved feil. */
+  user: string;
+  /** Var forsøket mot admin-kontoen? (egen fargekode i UI.) */
+  admin?: boolean;
   /** Klient-IP (fra x-forwarded-for), eller "unknown". */
   ip: string;
   /** User-agent (kortet til ~200 tegn). */
@@ -26,18 +37,18 @@ export interface LoginEvent {
   host: string;
 }
 
-const key = (userId: string) => `${KEY_PREFIX}${userId}`;
+const key = (logKey: string) => `${KEY_PREFIX}${logKey}`;
 
-/** Logg en vellykket innlogging. Best-effort — feiler stille. */
+/** Logg et innloggings-event (vellykket ELLER feilet). Best-effort — feiler stille. */
 export async function recordLoginEvent(
   redis: KodoRedis,
-  userId: string,
+  logKey: string,
   event: LoginEvent,
 ): Promise<void> {
   try {
-    await redis.zadd(key(userId), { score: event.ts, member: JSON.stringify(event) });
+    await redis.zadd(key(logKey), { score: event.ts, member: JSON.stringify(event) });
     // Behold kun de siste MAX_EVENTS (fjern alt utenom de nyeste).
-    await redis.zremrangebyrank(key(userId), 0, -(MAX_EVENTS + 1));
+    await redis.zremrangebyrank(key(logKey), 0, -(MAX_EVENTS + 1));
   } catch (err) {
     console.warn("[recordLoginEvent] failed (best-effort):", err instanceof Error ? err.message : String(err));
   }
@@ -46,12 +57,12 @@ export async function recordLoginEvent(
 /** Login-historikk, nyest først. Default 90 dager, maks MAX_EVENTS. */
 export async function listLoginEvents(
   redis: KodoRedis,
-  userId: string,
+  logKey: string,
   days = 90,
 ): Promise<LoginEvent[]> {
   try {
     const cutoff = Date.now() - days * 24 * 60 * 60 * 1000;
-    const members = await redis.zrange(key(userId), cutoff, "+inf", { byScore: true });
+    const members = await redis.zrange(key(logKey), cutoff, "+inf", { byScore: true });
     const events: LoginEvent[] = [];
     for (const raw of members) {
       try {
@@ -72,9 +83,9 @@ export async function listLoginEvents(
 }
 
 /** Slett all login-historikk for en bruker (GDPR-purge ved konto-sletting). */
-export async function deleteLoginEvents(redis: KodoRedis, userId: string): Promise<void> {
+export async function deleteLoginEvents(redis: KodoRedis, logKey: string): Promise<void> {
   try {
-    await redis.del(key(userId));
+    await redis.del(key(logKey));
   } catch (err) {
     console.warn("[deleteLoginEvents] failed:", err instanceof Error ? err.message : String(err));
   }
