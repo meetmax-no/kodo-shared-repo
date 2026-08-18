@@ -10,6 +10,7 @@
     ".": "./src/index.ts",
     "./ui": "./src/ui.ts",
     "./auth": "./src/auth.ts",
+    "./security": "./src/security.ts",
     "./tokens.css": "./tokens.css"
   },
   "sideEffects": false,
