@@ -4,3 +4,4 @@
 // Appen wirer inn i login-ruta og en Sikkerhet-visning.
 export * from "./rate-limit";
 export * from "./login-events";
+export * from "./lockdown";

@@ -14,6 +14,8 @@
  *  Upstash `Redis` oppfyller dette (cast `redis as unknown as KodoRedis` på
  *  kall-siden om overloadede signaturer gir TS-friksjon). */
 export interface KodoRedis {
+  get<T = unknown>(key: string): Promise<T | null>;
+  set(key: string, value: unknown): Promise<unknown>;
   incr(key: string): Promise<number>;
   expire(key: string, seconds: number, opt?: "NX" | "XX" | "GT" | "LT"): Promise<number>;
   ttl(key: string): Promise<number>;
