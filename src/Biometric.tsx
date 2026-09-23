@@ -14,6 +14,8 @@ import {
   ShieldCheck,
   X,
 } from "lucide-react";
+import { cn } from "./cn";
+import { kodoField } from "./styles";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // BiometricEnableCard — vises inne i appen etter innlogging når biometri ikke er
@@ -147,7 +149,7 @@ export function BiometricEnableCard({
               if (error) setError(null);
             }}
             placeholder={labels.passwordPlaceholder}
-            className="w-full rounded-lg border border-[var(--kodo-border-strong)] bg-[var(--kodo-surface)] py-2.5 pl-3 pr-10 text-sm text-[var(--kodo-text)] outline-none transition focus:border-[var(--kodo-blue)]"
+            className={cn(kodoField, "pr-10")}
           />
           <button
             type="button"

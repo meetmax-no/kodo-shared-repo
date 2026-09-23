@@ -12,6 +12,8 @@
 // under `sm`; fra `sm` og oppover er størrelsene som før.
 import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { Eye, EyeOff, KeyRound, Loader2, ShieldAlert } from "lucide-react";
+import { cn } from "./cn";
+import { kodoButtonPrimary, kodoField, kodoLabel } from "./styles";
 
 export interface LoginCardProps {
   /** Tittel (f.eks. ordmerke). */
@@ -133,7 +135,7 @@ export function LoginCard({
       <form onSubmit={handleSubmit} className="space-y-4">
         {withUsername && (
           <div>
-            <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-[var(--kodo-muted)]">
+            <label className={kodoLabel}>
               {usernameLabel}
             </label>
             <input
@@ -146,12 +148,12 @@ export function LoginCard({
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               placeholder={usernamePlaceholder}
-              className="w-full rounded-lg border border-[var(--kodo-border-strong)] bg-[var(--kodo-surface)] py-2.5 pl-3 pr-3 text-base text-[var(--kodo-text)] outline-none transition focus:border-[var(--kodo-blue)] sm:text-sm"
+              className={kodoField}
             />
           </div>
         )}
         <div>
-          <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-[var(--kodo-muted)]">
+          <label className={kodoLabel}>
             {passwordLabel}
           </label>
           <div className="relative">
@@ -163,7 +165,7 @@ export function LoginCard({
               value={pwd}
               onChange={(e) => setPwd(e.target.value)}
               placeholder={passwordPlaceholder}
-              className="w-full rounded-lg border border-[var(--kodo-border-strong)] bg-[var(--kodo-surface)] py-2.5 pl-3 pr-11 text-base text-[var(--kodo-text)] outline-none transition focus:border-[var(--kodo-blue)] sm:pr-10 sm:text-sm"
+              className={cn(kodoField, "pr-11 sm:pr-10")}
             />
             <button
               type="button"
@@ -189,7 +191,7 @@ export function LoginCard({
           type="submit"
           disabled={busy || !canSubmit}
           style={{ backgroundColor: "var(--kodo-blue)" }}
-          className="flex min-h-11 w-full items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold text-white shadow transition disabled:cursor-not-allowed disabled:opacity-60 sm:min-h-0"
+          className={cn(kodoButtonPrimary, "w-full")}
         >
           {busy ? (
             <Loader2 className="h-4 w-4 animate-spin" />

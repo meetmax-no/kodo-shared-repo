@@ -6,3 +6,4 @@ export * from "./LoginCard";
 export * from "./Biometric";
 export * from "./i18n-context";
 export * from "./LanguagePicker";
+export * from "./styles";

@@ -62,3 +62,10 @@ Sett `usernameLabel` for fler-bruker; uten den er kortet passord-only som før.
 `LoginCard`: 16 px skrift i feltene og 44 px trykkflater under `sm`; fra `sm`
 og oppover uendret. `LanguagePicker`: 44×44 px trykkflate via usynlig `::before`,
 utseendet uendret.
+
+## Skjema-stiler (`@kodo/shared/ui`)
+Felles klassenavn, så apper ikke kopierer klassestrenger:
+`kodoLabel`, `kodoField` (input/select/textarea), `kodoButtonPrimary`,
+`kodoButtonSecondary`. Mobil: 16 px i feltene og 44 px knapper under `sm`.
+Primærknappens farge settes inline: `style={{ backgroundColor: "var(--kodo-blue)" }}`.
+`LoginCard` og `Biometric` bruker dem selv.
