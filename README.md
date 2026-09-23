@@ -69,3 +69,13 @@ Felles klassenavn, så apper ikke kopierer klassestrenger:
 `kodoButtonSecondary`. Mobil: 16 px i feltene og 44 px knapper under `sm`.
 Primærknappens farge settes inline: `style={{ backgroundColor: "var(--kodo-blue)" }}`.
 `LoginCard` og `Biometric` bruker dem selv.
+
+## `ConfirmDialog` (`@kodo/shared/ui`)
+Bekreftelsesvindu («Vil du slette?»). i18n-fritt (tekst som props), `danger`
+for rød bekreft-knapp, `busy` låser knappene. ESC/klikk utenfor = avbryt, fokus
+starter på «Avbryt». 44 px knapper på mobil.
+```tsx
+<ConfirmDialog open={open} title={t("…delete_title")} message={recipe.title}
+  confirmLabel={t("…delete")} cancelLabel={t("…cancel")} danger
+  onConfirm={remove} onCancel={() => setOpen(false)} />
+```

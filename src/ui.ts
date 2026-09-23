@@ -7,3 +7,4 @@ export * from "./Biometric";
 export * from "./i18n-context";
 export * from "./LanguagePicker";
 export * from "./styles";
+export * from "./ConfirmDialog";
