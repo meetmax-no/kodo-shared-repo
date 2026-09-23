@@ -23,7 +23,20 @@ export function BarLabel({ children }: { children: ReactNode }) {
   );
 }
 
-export function MobileBottomBar({ children, label }: { children: ReactNode; label?: string }) {
+export function MobileBottomBar({
+  children,
+  label,
+  columns,
+  start,
+}: {
+  children: ReactNode;
+  label?: string;
+  /** Faste, like brede plasser. `start` (f.eks. «Tilbake») står alltid på plass
+   *  1 til venstre; resten fylles fra høyre. Uten: like brede kolonner for
+   *  knappene som finnes. */
+  columns?: number;
+  start?: ReactNode;
+}) {
   return (
     <>
       <div aria-hidden className="order-last h-[calc(5rem+env(safe-area-inset-bottom))] shrink-0 sm:hidden print:hidden" />
@@ -31,10 +44,28 @@ export function MobileBottomBar({ children, label }: { children: ReactNode; labe
         aria-label={label}
         className="fixed bottom-0 left-0 right-0 z-30 border-t border-[var(--kodo-border-strong)] bg-[var(--kodo-glass)] pb-[env(safe-area-inset-bottom)] backdrop-blur-xl sm:hidden print:hidden"
       >
-        {/* Like brede kolonner uansett antall (også knapper i fragmenter). */}
-        <div className="grid auto-cols-fr grid-flow-col gap-1 px-2 py-2">
-          {children}
-        </div>
+        {columns ? (
+          // Faste plasser: start i plass 1, resten høyrejustert i plass 2..n,
+          // hver like bred som én plass (også knapper i fragmenter).
+          <div
+            className="grid px-2 py-2"
+            style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}
+          >
+            <div className="flex">{start}</div>
+            <div
+              className="flex justify-end [&>*]:shrink-0 [&>*]:grow-0 [&>*]:basis-[var(--kodo-bar-slot)]"
+              style={{ gridColumn: "2 / -1", ["--kodo-bar-slot" as string]: `calc(100% / ${columns - 1})` }}
+            >
+              {children}
+            </div>
+          </div>
+        ) : (
+          // Like brede kolonner uansett antall (også knapper i fragmenter).
+          <div className="grid auto-cols-fr grid-flow-col gap-1 px-2 py-2">
+            {start}
+            {children}
+          </div>
+        )}
       </nav>
     </>
   );

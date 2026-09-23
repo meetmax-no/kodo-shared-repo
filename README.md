@@ -118,6 +118,12 @@ Mønster fra bankboks: status øverst til venstre, runde ikonknapper og språkva
   <MobileBarButton label={t("…print")} onClick={() => window.print()}><Printer /></MobileBarButton>
 </MobileBottomBar>
 ```
+**Faste plasser:** `<MobileBottomBar columns={4} start={tilbake}>…</MobileBottomBar>`
+gir fire like brede plasser; `start` står alltid på plass 1 til venstre, resten
+fylles fra høyre. Uten `columns` deles linjen likt mellom knappene som finnes.
+Appen bestemmer antallet (Kodo Food: konstanten `BAR_SLOTS` i
+`components/TopBar.tsx`).
+
 `NetStatus`: endepunktet skal svare `{ ok: true }`. `MobileBottomBar` legger inn
 avstand nederst selv (`order-last`, så linjen må ligge direkte i sidens ytterste
 `flex flex-col`) og skjules fra `sm` og ved utskrift.
