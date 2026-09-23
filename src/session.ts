@@ -3,8 +3,13 @@
 // resten). Web Crypto → fungerer i BÅDE Edge runtime (middleware) og Node.
 //
 // Cookie-format: `payload.signature`
-//   payload   = base64url(JSON({ iat, exp }))
+//   payload   = base64url(JSON({ iat, exp, sub?, admin? }))
 //   signature = base64url(HMAC-SHA256(secret, payload))
+//
+// Identitet (valgfri): `sub` (brukernavn) og `admin` gjør sesjonen fler-bruker.
+// Format og feltrekkefølge er identisk med kodo-rapport sin lokale lib/auth.ts,
+// så tokens signert der og her verifiseres begge veier. Uten identitet er
+// payloaden uendret ({ iat, exp }) — eksisterende kall virker som før.
 
 function base64urlEncode(bytes: Uint8Array): string {
   let bin = "";
@@ -48,16 +53,39 @@ async function hmacSign(secret: string, message: string): Promise<string> {
 export interface SessionPayload {
   iat: number; // issued-at (unix sec)
   exp: number; // expiry (unix sec)
+  /** Brukernavn (satt når sesjonen har identitet). */
+  sub?: string;
+  /** Satt (true) kun for admin-innlogging. */
+  admin?: boolean;
 }
 
-/** Lag en signert session-cookie-verdi. `ttlSeconds` styrer levetid. */
+/** Identiteten en sesjon kan bære. */
+export interface SessionIdentity {
+  sub: string;
+  admin?: boolean;
+}
+
+/** Sesjon med garantert identitet (returneres av `verifyIdentitySession`). */
+export type IdentitySessionPayload = SessionPayload & { sub: string };
+
+/** Lag en signert session-cookie-verdi. `ttlSeconds` styrer levetid.
+ *  `identity` (valgfri) legger `sub`/`admin` i payloaden (fler-bruker). */
 export async function signSession(
   secret: string,
   ttlSeconds: number,
+  identity?: SessionIdentity,
 ): Promise<string> {
   if (!secret) throw new Error("Session-secret mangler.");
+  if (identity && (typeof identity.sub !== "string" || !identity.sub)) {
+    throw new Error("Session-identitet mangler sub.");
+  }
   const now = Math.floor(Date.now() / 1000);
-  const payload: SessionPayload = { iat: now, exp: now + ttlSeconds };
+  const payload: SessionPayload = {
+    iat: now,
+    exp: now + ttlSeconds,
+    ...(identity ? { sub: identity.sub } : {}),
+    ...(identity?.admin ? { admin: true } : {}),
+  };
   const payloadB64 = base64urlEncode(
     new TextEncoder().encode(JSON.stringify(payload)),
   );
@@ -95,6 +123,23 @@ export async function verifySession(
   if (typeof payload.iat !== "number" || typeof payload.exp !== "number") {
     return null;
   }
+  if (payload.sub !== undefined && (typeof payload.sub !== "string" || !payload.sub)) {
+    return null;
+  }
+  if (payload.admin !== undefined && typeof payload.admin !== "boolean") {
+    return null;
+  }
   if (Math.floor(Date.now() / 1000) >= payload.exp) return null;
   return payload;
+}
+
+/** Som `verifySession`, men krever identitet (`sub`). Sesjoner uten identitet
+ *  (signert uten `identity`) avvises → null. Edge-trygg. */
+export async function verifyIdentitySession(
+  cookieValue: string | undefined | null,
+  secret: string,
+): Promise<IdentitySessionPayload | null> {
+  const payload = await verifySession(cookieValue, secret);
+  if (!payload || typeof payload.sub !== "string" || !payload.sub) return null;
+  return payload as IdentitySessionPayload;
 }
