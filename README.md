@@ -103,3 +103,21 @@ en `blob:`-URL. i18n-fritt, 44 px knapper på mobil.
 `shareLink({ title, url })` åpner telefonens delemeny (Web Share API) og faller
 tilbake til kopiering. Svar: `"shared" | "copied" | "cancelled" | "failed"`.
 `copyText(text)` kopierer og svarer `true/false`. Kun nettleser.
+
+## Topprad og bunnlinje (`@kodo/shared/ui`)
+Mønster fra bankboks: status øverst til venstre, runde ikonknapper og språkvalg
+øverst til høyre (fra `sm`), og på mobil en fast bunnlinje med ikon + liten tekst.
+```tsx
+<NetStatus labels={{ online: t("status.online"), offline: t("status.offline"),
+  "server-error": t("status.serverfeil") }} tips={…} endpoint="/api/health" />
+
+<Link href="/ny" className={kodoIconButton} aria-label={t("…")} title={t("…")}><Plus /></Link>
+
+<MobileBottomBar label={t("…")}>
+  <Link href="/" className={kodoBarItem}><ArrowLeft /><BarLabel>{t("…back")}</BarLabel></Link>
+  <MobileBarButton label={t("…print")} onClick={() => window.print()}><Printer /></MobileBarButton>
+</MobileBottomBar>
+```
+`NetStatus`: endepunktet skal svare `{ ok: true }`. `MobileBottomBar` legger inn
+avstand nederst selv (`order-last`, så linjen må ligge direkte i sidens ytterste
+`flex flex-col`) og skjules fra `sm` og ved utskrift.

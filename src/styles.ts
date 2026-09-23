@@ -20,3 +20,7 @@ export const kodoButtonPrimary =
 /** Sekundærknapp med kant. */
 export const kodoButtonSecondary =
   "flex min-h-11 items-center justify-center gap-2 rounded-lg border border-[var(--kodo-border-strong)] px-4 py-2.5 text-sm font-medium text-[var(--kodo-text)] transition hover:bg-[var(--kodo-hover-strong)] disabled:cursor-not-allowed disabled:opacity-60 sm:min-h-0";
+
+/** Rund ikonknapp i toppraden (40×40, som bankboks). Sett aria-label og title. */
+export const kodoIconButton =
+  "flex h-10 w-10 items-center justify-center rounded-full border border-[var(--kodo-border-strong)] text-[var(--kodo-text)] transition hover:bg-[var(--kodo-hover-strong)] disabled:cursor-not-allowed disabled:opacity-50 [&_svg]:h-4 [&_svg]:w-4";
