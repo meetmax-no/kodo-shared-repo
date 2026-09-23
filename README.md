@@ -79,3 +79,11 @@ starter på «Avbryt». 44 px knapper på mobil.
   confirmLabel={t("…delete")} cancelLabel={t("…cancel")} danger
   onConfirm={remove} onCancel={() => setOpen(false)} />
 ```
+
+## `ImageViewer` (`@kodo/shared/ui`)
+Vindu som viser bilder i full bredde, rullbart. ESC, «Lukk» og klikk utenfor
+lukker; låser rulling av siden bak. Fyller skjermen på mobil.
+```tsx
+<ImageViewer open={open} title={t("…")} closeLabel={t("…close")}
+  images={paths.map((p) => ({ src: `/api/images/${p}` }))} onClose={() => setOpen(false)} />
+```
