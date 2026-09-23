@@ -11,9 +11,10 @@
 import type { ReactNode } from "react";
 import { cn } from "./cn";
 
-/** Klassenavn for én knapp/lenke i bunnlinjen: ikon over liten tekst, 56 px høy. */
+/** Klassenavn for én knapp/lenke i bunnlinjen: ikon i sirkel (40 px, som
+ *  kodoIconButton) over liten tekst. */
 export const kodoBarItem =
-  "flex h-14 w-full flex-col items-center justify-center gap-0.5 rounded-xl text-[var(--kodo-text)] transition hover:bg-[var(--kodo-hover-strong)] active:bg-[var(--kodo-hover-strong)] disabled:opacity-50 [&_svg]:h-6 [&_svg]:w-6";
+  "flex w-full flex-col items-center justify-center gap-1 rounded-xl py-1 text-[var(--kodo-text)] transition disabled:opacity-50 [&_svg]:box-content [&_svg]:h-5 [&_svg]:w-5 [&_svg]:rounded-full [&_svg]:border [&_svg]:border-[var(--kodo-border-strong)] [&_svg]:p-[9px] [&_svg]:transition hover:[&_svg]:bg-[var(--kodo-hover-strong)] active:[&_svg]:bg-[var(--kodo-hover-strong)]";
 
 /** Den lille teksten under ikonet i bunnlinjen. */
 export function BarLabel({ children }: { children: ReactNode }) {
