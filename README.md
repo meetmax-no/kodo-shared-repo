@@ -87,3 +87,19 @@ lukker; låser rulling av siden bak. Fyller skjermen på mobil.
 <ImageViewer open={open} title={t("…")} closeLabel={t("…close")}
   images={paths.map((p) => ({ src: `/api/images/${p}` }))} onClose={() => setOpen(false)} />
 ```
+
+## `ImageCropper` (`@kodo/shared/ui`)
+Beskjæring i fast format: flytt med én finger/mus, zoom med to fingre eller
+glidebryter. Leverer utsnittet som JPEG (`onCrop(blob)`), maks `outputWidth`
+bredt (mindre utsnitt skaleres ikke opp). `src` må være samme opprinnelse eller
+en `blob:`-URL. i18n-fritt, 44 px knapper på mobil.
+```tsx
+<ImageCropper src={url} aspect={4 / 3} outputWidth={1200}
+  zoomLabel={t("…zoom")} confirmLabel={t("…use")} cancelLabel={t("…cancel")}
+  busy={saving} onCrop={(blob) => upload(blob)} onCancel={() => setUrl(null)} />
+```
+
+## Deling (`@kodo/shared`)
+`shareLink({ title, url })` åpner telefonens delemeny (Web Share API) og faller
+tilbake til kopiering. Svar: `"shared" | "copied" | "cancelled" | "failed"`.
+`copyText(text)` kopierer og svarer `true/false`. Kun nettleser.

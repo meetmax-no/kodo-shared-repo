@@ -9,3 +9,4 @@ export * from "./LanguagePicker";
 export * from "./styles";
 export * from "./ConfirmDialog";
 export * from "./ImageViewer";
+export * from "./ImageCropper";
