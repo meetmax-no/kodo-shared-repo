@@ -23,3 +23,13 @@ export function formatKr(n: number): string {
   const grouped = int.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
   return `${neg ? "-" : ""}${grouped},${dec}`;
 }
+
+/** Tall → norsk visning uten unødvendige desimaler: 1.5 → "1,5", 227 → "227",
+ *  1234.5 → "1 234,5". `maxDecimals` (standard 2) avrunder. */
+export function formatNumber(n: number, maxDecimals = 2): string {
+  const neg = n < 0;
+  const fixed = Math.abs(n).toFixed(maxDecimals).replace(/\.?0+$/, "");
+  const [int, dec] = fixed.split(".");
+  const grouped = int.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+  return `${neg ? "-" : ""}${grouped}${dec ? `,${dec}` : ""}`;
+}
