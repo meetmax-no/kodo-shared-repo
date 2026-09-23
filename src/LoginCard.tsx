@@ -3,9 +3,13 @@
 // Delt login-kort (port av bankboks MasterPasswordLogin). Presentasjonelt +
 // token-drevet (kun --kodo-*), i18n-fritt (all tekst som props), med slots for
 // biometri (over «eller»-skille) og footer (destroy/reset o.l.). Submit-logikken
-// eier appen: `onSubmit(password)` kaster ved feil → kortet viser feilteksten.
-// Self-contained: øye-knappens bakgrunn settes inline så host-appens globale
-// button/button:hover ikke kaprer den.
+// eier appen: `onSubmit(password, username)` kaster ved feil → kortet viser
+// feilteksten. Brukernavn-feltet er valgfritt: det vises bare når
+// `usernameLabel` er satt (fler-bruker, f.eks. Rapport/Food). Uten det er kortet
+// passord-only som før. Self-contained: øye-knappens bakgrunn settes inline så
+// host-appens globale button/button:hover ikke kaprer den.
+// Mobil: 16 px i feltene (iOS zoomer ellers inn ved fokus) og 44 px trykkflater
+// under `sm`; fra `sm` og oppover er størrelsene som før.
 import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { Eye, EyeOff, KeyRound, Loader2, ShieldAlert } from "lucide-react";
 
@@ -13,6 +17,9 @@ export interface LoginCardProps {
   /** Tittel (f.eks. ordmerke). */
   title: ReactNode;
   subtitle?: string;
+  /** Satt → brukernavn-felt vises over passordet (fler-bruker). */
+  usernameLabel?: string;
+  usernamePlaceholder?: string;
   passwordLabel: string;
   passwordPlaceholder?: string;
   submitLabel: string;
@@ -21,7 +28,8 @@ export interface LoginCardProps {
   hidePasswordLabel: string;
   /** Fallback-feiltekst hvis onSubmit kaster uten melding. */
   errorFallback?: string;
-  onSubmit: (password: string) => Promise<void>;
+  /** `username` er trimmet, eller "" når brukernavn-feltet ikke vises. */
+  onSubmit: (password: string, username: string) => Promise<void>;
   /** Vises over et «eller»-skille (f.eks. biometri-knapp). */
   biometricSlot?: ReactNode;
   dividerLabel?: string;
@@ -33,6 +41,8 @@ export interface LoginCardProps {
 export function LoginCard({
   title,
   subtitle,
+  usernameLabel,
+  usernamePlaceholder,
   passwordLabel,
   passwordPlaceholder,
   submitLabel,
@@ -46,6 +56,8 @@ export function LoginCard({
   footer,
   autoFocus = true,
 }: LoginCardProps) {
+  const withUsername = usernameLabel !== undefined;
+  const [username, setUsername] = useState("");
   const [pwd, setPwd] = useState("");
   const [show, setShow] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -54,7 +66,7 @@ export function LoginCard({
   // Tøm feil når brukeren skriver.
   useEffect(() => {
     setError(null);
-  }, [pwd]);
+  }, [pwd, username]);
 
   // bfcache-felle: navigerer vi vekk mens busy=true, fryser nettleseren siden.
   // Tilbake-knappen gjenoppretter «Saving …»-tilstanden. Nullstill ved restore.
@@ -69,13 +81,16 @@ export function LoginCard({
     return () => window.removeEventListener("pageshow", onShow);
   }, []);
 
+  const canSubmit =
+    pwd.length > 0 && (!withUsername || username.trim().length > 0);
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (busy || pwd.length === 0) return;
+    if (busy || !canSubmit) return;
     setBusy(true);
     setError(null);
     try {
-      await onSubmit(pwd);
+      await onSubmit(pwd, withUsername ? username.trim() : "");
     } catch (err) {
       setError(err instanceof Error ? err.message : (errorFallback ?? ""));
       setBusy(false);
@@ -116,6 +131,25 @@ export function LoginCard({
       )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
+        {withUsername && (
+          <div>
+            <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-[var(--kodo-muted)]">
+              {usernameLabel}
+            </label>
+            <input
+              type="text"
+              autoComplete="username"
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
+              autoFocus={autoFocus}
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder={usernamePlaceholder}
+              className="w-full rounded-lg border border-[var(--kodo-border-strong)] bg-[var(--kodo-surface)] py-2.5 pl-3 pr-3 text-base text-[var(--kodo-text)] outline-none transition focus:border-[var(--kodo-blue)] sm:text-sm"
+            />
+          </div>
+        )}
         <div>
           <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-[var(--kodo-muted)]">
             {passwordLabel}
@@ -123,13 +157,13 @@ export function LoginCard({
           <div className="relative">
             <input
               type={show ? "text" : "password"}
-              autoComplete="off"
+              autoComplete={withUsername ? "current-password" : "off"}
               spellCheck={false}
-              autoFocus={autoFocus}
+              autoFocus={autoFocus && !withUsername}
               value={pwd}
               onChange={(e) => setPwd(e.target.value)}
               placeholder={passwordPlaceholder}
-              className="w-full rounded-lg border border-[var(--kodo-border-strong)] bg-[var(--kodo-surface)] py-2.5 pl-3 pr-10 text-sm text-[var(--kodo-text)] outline-none transition focus:border-[var(--kodo-blue)]"
+              className="w-full rounded-lg border border-[var(--kodo-border-strong)] bg-[var(--kodo-surface)] py-2.5 pl-3 pr-11 text-base text-[var(--kodo-text)] outline-none transition focus:border-[var(--kodo-blue)] sm:pr-10 sm:text-sm"
             />
             <button
               type="button"
@@ -137,7 +171,7 @@ export function LoginCard({
               aria-label={show ? hidePasswordLabel : showPasswordLabel}
               tabIndex={-1}
               style={{ background: "transparent" }}
-              className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center justify-center rounded p-1.5 text-[var(--kodo-muted)] transition hover:text-[var(--kodo-text)]"
+              className="absolute right-0 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded text-[var(--kodo-muted)] transition hover:text-[var(--kodo-text)] sm:right-2 sm:h-auto sm:w-auto sm:p-1.5"
             >
               {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             </button>
@@ -153,9 +187,9 @@ export function LoginCard({
 
         <button
           type="submit"
-          disabled={busy || pwd.length === 0}
+          disabled={busy || !canSubmit}
           style={{ backgroundColor: "var(--kodo-blue)" }}
-          className="flex w-full items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold text-white shadow transition disabled:cursor-not-allowed disabled:opacity-60"
+          className="flex min-h-11 w-full items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold text-white shadow transition disabled:cursor-not-allowed disabled:opacity-60 sm:min-h-0"
         >
           {busy ? (
             <Loader2 className="h-4 w-4 animate-spin" />
