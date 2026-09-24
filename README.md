@@ -91,6 +91,16 @@ utenfor lukker; fyller skjermen på mobil. i18n-fritt.
 </Dialog>
 ```
 
+## `ActionMenu` (`@kodo/shared/ui`)
+Knapp med liten meny som åpner seg over knappen (egnet nederst på siden).
+Klikk utenfor, ESC eller et valg lukker. i18n-fritt; `danger` gir rød tekst.
+```tsx
+<ActionMenu label={t("…share")} items={[
+  { key: "share", label: t("…share_link"), onSelect: share },
+  { key: "stop", label: t("…stop"), onSelect: stop, danger: true },
+]} />
+```
+
 ## `ImageViewer` (`@kodo/shared/ui`)
 Vindu som viser bilder i full bredde, rullbart. ESC, «Lukk» og klikk utenfor
 lukker; låser rulling av siden bak. Fyller skjermen på mobil.
