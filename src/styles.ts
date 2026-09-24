@@ -24,3 +24,9 @@ export const kodoButtonSecondary =
 /** Rund ikonknapp i toppraden (40×40, som bankboks). Sett aria-label og title. */
 export const kodoIconButton =
   "flex h-10 w-10 items-center justify-center rounded-full border border-[var(--kodo-border-strong)] text-[var(--kodo-text)] transition hover:bg-[var(--kodo-hover-strong)] disabled:cursor-not-allowed disabled:opacity-50 [&_svg]:h-4 [&_svg]:w-4";
+
+/** Rad som rulles sidelengs (f.eks. filterknapper): tynt, mørkt rullefelt i
+ *  Ko|Do-farger under innholdet (ikke nettleserens lyse standard), med plass
+ *  under så det ikke dekker knappene. Standard (Chrome/Firefox) + WebKit. */
+export const kodoScrollX =
+  "overflow-x-auto pb-3 [scrollbar-width:thin] [scrollbar-color:var(--kodo-border-strong)_transparent] [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-[var(--kodo-border-strong)]";

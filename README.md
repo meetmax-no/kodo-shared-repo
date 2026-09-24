@@ -66,7 +66,8 @@ utseendet uendret.
 ## Skjema-stiler (`@kodo/shared/ui`)
 Felles klassenavn, så apper ikke kopierer klassestrenger:
 `kodoLabel`, `kodoField` (input/select/textarea), `kodoButtonPrimary`,
-`kodoButtonSecondary`. Mobil: 16 px i feltene og 44 px knapper under `sm`.
+`kodoButtonSecondary`, `kodoIconButton` (rund ikonknapp) og `kodoScrollX` (rad som
+rulles sidelengs, med tynt mørkt rullefelt under innholdet). Mobil: 16 px i feltene og 44 px knapper under `sm`.
 Primærknappens farge settes inline: `style={{ backgroundColor: "var(--kodo-blue)" }}`.
 `LoginCard` og `Biometric` bruker dem selv.
 
