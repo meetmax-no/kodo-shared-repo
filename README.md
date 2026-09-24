@@ -89,14 +89,17 @@ lukker; låser rulling av siden bak. Fyller skjermen på mobil.
 ```
 
 ## `ImageCropper` (`@kodo/shared/ui`)
-Beskjæring i fast format: flytt med én finger/mus, zoom med to fingre eller
-glidebryter. Leverer utsnittet som JPEG (`onCrop(blob)`), maks `outputWidth`
-bredt (mindre utsnitt skaleres ikke opp). `src` må være samme opprinnelse eller
-en `blob:`-URL. i18n-fritt, 44 px knapper på mobil.
+Beskjæring etter modell av bankboks' `CardCropper`: hele bildet i fullskjerm
+med en utsnittsramme med håndtak og tredjedelslinjer. Låst til `aspect` som
+standard; lås-knappen gir fritt format. Bygger på `react-image-crop` (ISC), som
+bare velger koordinatene — pikslene klippes i egen canvas. Leverer JPEG
+(`onCrop(blob)`), maks `outputWidth` bredt. `src` må være samme opprinnelse eller
+en `blob:`-URL. i18n-fritt, ESC avbryter, 44 px knapper på mobil.
 ```tsx
-<ImageCropper src={url} aspect={4 / 3} outputWidth={1200}
-  zoomLabel={t("…zoom")} confirmLabel={t("…use")} cancelLabel={t("…cancel")}
-  busy={saving} onCrop={(blob) => upload(blob)} onCancel={() => setUrl(null)} />
+{url && <ImageCropper src={url} aspect={4 / 3} outputWidth={1200}
+  title={t("…title")} lockedLabel="4:3" freeLabel={t("…free")}
+  confirmLabel={t("…use")} cancelLabel={t("…cancel")} hint={t("…hint")}
+  busy={saving} onCrop={(blob) => upload(blob)} onCancel={() => setUrl(null)} />}
 ```
 
 ## Deling (`@kodo/shared`)

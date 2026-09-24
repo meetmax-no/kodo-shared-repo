@@ -1,26 +1,37 @@
 "use client";
 
-// Delt bildebeskjærer: fast format (`aspect`), flytt med én finger/mus, zoom med
-// to fingre eller glidebryter. Leverer utsnittet som JPEG (`onCrop(blob)`).
-// i18n-fritt (tekst som props), kun --kodo-*. Mobil først: 44 px knapper,
-// `touch-action: none` på rammen så siden ikke ruller mens man drar.
-// `src` må være samme opprinnelse (eller blob:-URL), ellers kan ikke canvas lese
-// pikslene.
-import { useCallback, useEffect, useRef, useState, type PointerEvent } from "react";
+// Delt bildebeskjærer (modell: bankboks' CardCropper): hele bildet vises i
+// fullskjerm, og brukeren drar i en utsnittsramme med håndtak. Låst til
+// `aspect` som standard; lås-knappen gir fritt format. Tredjedelslinjer.
+// `react-image-crop` velger bare koordinatene — pikslene klippes i vår egen
+// canvas. Leverer utsnittet som JPEG (`onCrop(blob)`), maks `outputWidth` bredt
+// (mindre utsnitt skaleres ikke opp). i18n-fritt (tekst som props). Mobil først:
+// fyller skjermen, 44 px knapper. `src` må være samme opprinnelse eller en
+// blob:-URL, ellers kan ikke canvas lese pikslene.
+import { useEffect, useRef, useState } from "react";
+import ReactCrop, { centerCrop, makeAspectCrop, type Crop, type PixelCrop } from "react-image-crop";
+import "react-image-crop/dist/ReactCrop.css";
+import { Check, Loader2, Lock, LockOpen, X } from "lucide-react";
 import { cn } from "./cn";
-import { kodoButtonPrimary, kodoButtonSecondary, kodoLabel } from "./styles";
+import { kodoButtonPrimary, kodoButtonSecondary } from "./styles";
 
 export interface ImageCropperProps {
   src: string;
-  /** Bredde/høyde, f.eks. 4 / 3. */
+  /** Bredde/høyde for låst format, f.eks. 4 / 3. */
   aspect: number;
   /** Maks bredde på resultatet i piksler (mindre utsnitt skaleres ikke opp). */
   outputWidth: number;
-  zoomLabel: string;
+  title: string;
+  /** Tekst på lås-knappen når formatet er låst, f.eks. «4:3». */
+  lockedLabel: string;
+  /** Tekst på lås-knappen når formatet er fritt, f.eks. «Fritt». */
+  freeLabel: string;
   confirmLabel: string;
   cancelLabel: string;
   /** Vises på bekreft-knappen mens `busy`. */
   busyLabel?: string;
+  /** Hjelpetekst under knappene. */
+  hint?: string;
   busy?: boolean;
   /** JPEG-kvalitet 0–1 (standard 0,85). */
   quality?: number;
@@ -28,179 +39,160 @@ export interface ImageCropperProps {
   onCancel: () => void;
 }
 
-const MAX_ZOOM = 4;
-const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
-
-type View = { z: number; x: number; y: number };
+function startCrop(width: number, height: number, aspect: number): Crop {
+  return centerCrop(makeAspectCrop({ unit: "%", width: 88 }, aspect, width, height), width, height);
+}
 
 export function ImageCropper({
   src,
   aspect,
   outputWidth,
-  zoomLabel,
+  title,
+  lockedLabel,
+  freeLabel,
   confirmLabel,
   cancelLabel,
   busyLabel,
+  hint,
   busy = false,
   quality = 0.85,
   onCrop,
   onCancel,
 }: ImageCropperProps) {
-  const frameRef = useRef<HTMLDivElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
-  const [frameW, setFrameW] = useState(0);
-  const [natural, setNatural] = useState<{ w: number; h: number } | null>(null);
-  const [view, setView] = useState<View>({ z: 1, x: 0, y: 0 });
-  const pointers = useRef(new Map<number, { x: number; y: number }>());
+  const [crop, setCrop] = useState<Crop>();
+  const [done, setDone] = useState<PixelCrop | null>(null);
+  const [locked, setLocked] = useState(true);
 
-  const frameH = frameW / aspect;
-  const base = natural && frameW ? Math.max(frameW / natural.w, frameH / natural.h) : 1;
-
-  // Holder bildet innenfor rammen (ingen tomme kanter).
-  const fit = useCallback(
-    (v: View): View => {
-      if (!natural) return v;
-      const s = base * v.z;
-      return {
-        z: v.z,
-        x: clamp(v.x, frameW - natural.w * s, 0),
-        y: clamp(v.y, frameH - natural.h * s, 0),
-      };
-    },
-    [natural, base, frameW, frameH],
-  );
-
+  // ESC avbryter; siden bak ruller ikke.
   useEffect(() => {
-    const el = frameRef.current;
-    if (!el) return;
-    const ro = new ResizeObserver(() => setFrameW(el.clientWidth));
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
+    const h = (e: KeyboardEvent) => e.key === "Escape" && !busy && onCancel();
+    window.addEventListener("keydown", h);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", h);
+      document.body.style.overflow = prev;
+    };
+  }, [busy, onCancel]);
 
-  // Nytt bilde eller ny rammebredde → sentrer på zoom 1.
-  useEffect(() => {
-    if (!natural || !frameW) return;
-    const s = Math.max(frameW / natural.w, frameW / aspect / natural.h);
-    setView({ z: 1, x: (frameW - natural.w * s) / 2, y: (frameW / aspect - natural.h * s) / 2 });
-  }, [natural, frameW, aspect]);
-
-  /** Zoom til `z` rundt punktet (cx, cy) i rammen, flyttet med (dx, dy). */
-  const zoomAt = (v: View, z: number, cx: number, cy: number, dx = 0, dy = 0): View => {
-    const nz = clamp(z, 1, MAX_ZOOM);
-    const k = nz / v.z;
-    return fit({ z: nz, x: cx + dx - (cx - v.x) * k, y: cy + dy - (cy - v.y) * k });
-  };
-
-  const local = (e: PointerEvent) => {
-    const r = frameRef.current!.getBoundingClientRect();
-    return { x: e.clientX - r.left, y: e.clientY - r.top };
-  };
-
-  const onDown = (e: PointerEvent<HTMLDivElement>) => {
-    if (busy) return;
-    e.currentTarget.setPointerCapture(e.pointerId);
-    pointers.current.set(e.pointerId, local(e));
-  };
-
-  const onMove = (e: PointerEvent<HTMLDivElement>) => {
-    const prev = pointers.current.get(e.pointerId);
-    if (!prev) return;
-    const p = local(e);
-    const others = [...pointers.current.entries()].filter(([id]) => id !== e.pointerId);
-    if (others.length === 0) {
-      setView((v) => fit({ ...v, x: v.x + p.x - prev.x, y: v.y + p.y - prev.y }));
-    } else {
-      const o = others[0][1];
-      const d0 = Math.hypot(prev.x - o.x, prev.y - o.y);
-      const d1 = Math.hypot(p.x - o.x, p.y - o.y);
-      const m0 = { x: (prev.x + o.x) / 2, y: (prev.y + o.y) / 2 };
-      const m1 = { x: (p.x + o.x) / 2, y: (p.y + o.y) / 2 };
-      if (d0 > 0) setView((v) => zoomAt(v, v.z * (d1 / d0), m0.x, m0.y, m1.x - m0.x, m1.y - m0.y));
-    }
-    pointers.current.set(e.pointerId, p);
-  };
-
-  const onUp = (e: PointerEvent<HTMLDivElement>) => {
-    pointers.current.delete(e.pointerId);
+  const toggleLock = () => {
+    const next = !locked;
+    setLocked(next);
+    // Fra fritt til låst: snapp rammen til formatet.
+    const img = imgRef.current;
+    if (next && img) setCrop(startCrop(img.width, img.height, aspect));
   };
 
   const confirm = () => {
     const img = imgRef.current;
-    if (!img || !natural || !frameW || busy) return;
-    const s = base * view.z;
-    const sw = frameW / s;
-    const sh = frameH / s;
-    const w = Math.round(Math.min(outputWidth, sw));
-    const h = Math.round(w / aspect);
+    if (!img || !done?.width || !done?.height || busy) return;
+    // react-image-crop gir skjerm-piksler; skaler til bildets egne piksler.
+    const sx = img.naturalWidth / img.width;
+    const sy = img.naturalHeight / img.height;
+    const cw = done.width * sx;
+    const ch = done.height * sy;
+    const w = Math.round(Math.min(outputWidth, cw));
+    const h = Math.round((w * ch) / cw);
     const canvas = document.createElement("canvas");
     canvas.width = w;
     canvas.height = h;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
-    ctx.drawImage(img, -view.x / s, -view.y / s, sw, sh, 0, 0, w, h);
+    ctx.drawImage(img, done.x * sx, done.y * sy, cw, ch, 0, 0, w, h);
     canvas.toBlob((blob) => blob && onCrop(blob), "image/jpeg", quality);
   };
 
-  const s = base * view.z;
-
   return (
-    <div className="flex flex-col gap-4">
-      <div
-        ref={frameRef}
-        className="relative w-full cursor-grab touch-none select-none overflow-hidden rounded-lg border border-[var(--kodo-border-strong)] bg-black active:cursor-grabbing"
-        style={{ aspectRatio: String(aspect) }}
-        onPointerDown={onDown}
-        onPointerMove={onMove}
-        onPointerUp={onUp}
-        onPointerCancel={onUp}
-      >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          ref={imgRef}
-          src={src}
-          alt=""
-          draggable={false}
-          onLoad={(e) => setNatural({ w: e.currentTarget.naturalWidth, h: e.currentTarget.naturalHeight })}
-          className="pointer-events-none absolute left-0 top-0 max-w-none origin-top-left"
-          style={
-            natural
-              ? { width: natural.w, height: natural.h, transform: `translate(${view.x}px, ${view.y}px) scale(${s})` }
-              : { opacity: 0 }
-          }
-        />
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label={title}
+      className="fixed inset-0 z-[110] flex flex-col bg-black text-white"
+    >
+      <div className="flex items-center justify-between gap-2 border-b border-white/10 px-4 py-3">
+        <span className="truncate text-sm font-semibold">{title}</span>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={toggleLock}
+            disabled={busy}
+            aria-pressed={locked}
+            className="flex min-h-11 items-center gap-1.5 rounded-lg border border-white/20 bg-white/10 px-3 text-xs font-semibold text-white disabled:opacity-50 sm:min-h-0 sm:py-2"
+          >
+            {locked ? <Lock className="h-4 w-4" /> : <LockOpen className="h-4 w-4" />}
+            {locked ? lockedLabel : freeLabel}
+          </button>
+          <button
+            type="button"
+            onClick={onCancel}
+            disabled={busy}
+            aria-label={cancelLabel}
+            title={cancelLabel}
+            className="flex h-11 w-11 items-center justify-center rounded-lg bg-white/10 text-white disabled:opacity-50 sm:h-9 sm:w-9"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
       </div>
 
-      <div>
-        <label className={kodoLabel} htmlFor="kodo-cropper-zoom">
-          {zoomLabel}
-        </label>
-        <input
-          id="kodo-cropper-zoom"
-          type="range"
-          min={1}
-          max={MAX_ZOOM}
-          step={0.01}
-          value={view.z}
-          disabled={busy || !natural}
-          onChange={(e) => setView((v) => zoomAt(v, Number(e.target.value), frameW / 2, frameH / 2))}
-          className="h-11 w-full accent-[var(--kodo-blue)]"
-        />
-      </div>
-
-      <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-        <button type="button" onClick={onCancel} disabled={busy} className={cn(kodoButtonSecondary, "w-full sm:w-auto")}>
-          {cancelLabel}
-        </button>
-        <button
-          type="button"
-          onClick={confirm}
-          disabled={busy || !natural}
-          style={{ backgroundColor: "var(--kodo-blue)" }}
-          className={cn(kodoButtonPrimary, "w-full sm:w-auto")}
+      <div className="flex flex-1 items-center justify-center overflow-auto p-4">
+        <ReactCrop
+          crop={crop}
+          onChange={(_, percent) => setCrop(percent)}
+          onComplete={(c) => setDone(c)}
+          aspect={locked ? aspect : undefined}
+          keepSelection
+          ruleOfThirds
+          minWidth={40}
+          minHeight={30}
+          disabled={busy}
         >
-          {busy ? (busyLabel ?? confirmLabel) : confirmLabel}
-        </button>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            ref={imgRef}
+            src={src}
+            alt=""
+            onLoad={(e) => {
+              const { width, height } = e.currentTarget;
+              const c = startCrop(width, height, aspect);
+              setCrop(c);
+              // Startrammen i piksler, så «bekreft» virker uten at rammen røres.
+              setDone({
+                unit: "px",
+                x: ((c.x ?? 0) / 100) * width,
+                y: ((c.y ?? 0) / 100) * height,
+                width: ((c.width ?? 0) / 100) * width,
+                height: ((c.height ?? 0) / 100) * height,
+              });
+            }}
+            style={{ maxHeight: "70vh", maxWidth: "100%" }}
+          />
+        </ReactCrop>
+      </div>
+
+      <div className="border-t border-white/10 px-4 py-4">
+        <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-center">
+          <button
+            type="button"
+            onClick={onCancel}
+            disabled={busy}
+            className={cn(kodoButtonSecondary, "w-full border-white/20 text-white sm:w-auto")}
+          >
+            {cancelLabel}
+          </button>
+          <button
+            type="button"
+            onClick={confirm}
+            disabled={busy || !done?.width || !done?.height}
+            style={{ backgroundColor: "var(--kodo-blue)" }}
+            className={cn(kodoButtonPrimary, "w-full sm:w-auto")}
+          >
+            {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+            {busy ? (busyLabel ?? confirmLabel) : confirmLabel}
+          </button>
+        </div>
+        {hint && <p className="mt-3 text-center text-[11px] text-white/50">{hint}</p>}
       </div>
     </div>
   );
