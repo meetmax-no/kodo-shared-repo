@@ -81,6 +81,16 @@ starter på «Avbryt». 44 px knapper på mobil.
   onConfirm={remove} onCancel={() => setOpen(false)} />
 ```
 
+## `Dialog` (`@kodo/shared/ui`)
+Enkelt vindu med tittel, «Lukk» og fritt innhold (rullbart) — for små
+innstillings-/infovinduer der `SettingsShell` er for mye. ESC, «Lukk» og klikk
+utenfor lukker; fyller skjermen på mobil. i18n-fritt.
+```tsx
+<Dialog open={open} title={t("…")} closeLabel={t("…close")} onClose={() => setOpen(false)}>
+  …innhold…
+</Dialog>
+```
+
 ## `ImageViewer` (`@kodo/shared/ui`)
 Vindu som viser bilder i full bredde, rullbart. ESC, «Lukk» og klikk utenfor
 lukker; låser rulling av siden bak. Fyller skjermen på mobil.

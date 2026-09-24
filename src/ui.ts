@@ -12,3 +12,4 @@ export * from "./ImageViewer";
 export * from "./ImageCropper";
 export * from "./NetStatus";
 export * from "./MobileBottomBar";
+export * from "./Dialog";

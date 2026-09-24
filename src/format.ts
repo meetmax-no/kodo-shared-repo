@@ -28,7 +28,8 @@ export function formatKr(n: number): string {
  *  1234.5 → "1 234,5". `maxDecimals` (standard 2) avrunder. */
 export function formatNumber(n: number, maxDecimals = 2): string {
   const neg = n < 0;
-  const fixed = Math.abs(n).toFixed(maxDecimals).replace(/\.?0+$/, "");
+  // Fjern bare nuller etter desimalpunktet (ikke i heltall: 1560 → "1 560").
+  const fixed = Math.abs(n).toFixed(maxDecimals).replace(/(\.\d*?)0+$/, "$1").replace(/\.$/, "");
   const [int, dec] = fixed.split(".");
   const grouped = int.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
   return `${neg ? "-" : ""}${grouped}${dec ? `,${dec}` : ""}`;
