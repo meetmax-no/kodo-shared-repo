@@ -101,6 +101,18 @@ Klikk utenfor, ESC eller et valg lukker. i18n-fritt; `danger` gir rød tekst.
 ]} />
 ```
 
+## `Select` (`@kodo/shared/ui`)
+Nedtrekksliste som erstatter `<select>`, med samme utseende på iPhone, Android og
+desktop (telefonens egen velger kan ikke styles). Lista åpner seg under feltet,
+eller over når det er for lite plass under. Klikk utenfor, ESC, Tab eller et valg
+lukker; ↑/↓, Home/End og Enter/mellomrom fra tastaturet. `emptyLabel` gir et
+«ingen»-valg øverst (→ `null`). i18n-fritt, 44 px valg og 16 px tekst på mobil.
+```tsx
+<label htmlFor="month" className={kodoLabel}>{t("…month")}</label>
+<Select id="month" value={month} emptyLabel={t("…not_set")}
+  options={months.map((m) => ({ value: m, label: monthName(m) }))} onChange={setMonth} />
+```
+
 ## `ImageViewer` (`@kodo/shared/ui`)
 Vindu som viser bilder i full bredde, rullbart. ESC, «Lukk» og klikk utenfor
 lukker; låser rulling av siden bak. Fyller skjermen på mobil.
